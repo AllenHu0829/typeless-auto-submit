@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 660" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 820" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif">
   <defs>
     <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#f8f9fb"/>
@@ -21,10 +21,10 @@
   </defs>
 
   <!-- Background -->
-  <rect width="860" height="660" rx="16" fill="url(#bgGrad)"/>
+  <rect width="860" height="820" rx="16" fill="url(#bgGrad)"/>
 
   <!-- Title -->
-  <text x="430" y="42" text-anchor="middle" font-size="22" font-weight="700" fill="#1f2937">Voice Input Flow Comparison</text>
+  <text x="430" y="42" text-anchor="middle" font-size="22" font-weight="700" fill="#1f2937">Voice Interaction Flow Comparison</text>
   <text x="430" y="64" text-anchor="middle" font-size="13" fill="#6b7280">Standard Dictation vs Typeless Auto Submit</text>
 
   <!-- ========== LEFT: Original Flow ========== -->
@@ -33,7 +33,6 @@
     <rect width="380" height="44" rx="10" fill="url(#origHead)"/>
     <text x="190" y="28" text-anchor="middle" font-size="16" font-weight="600" fill="white">Original Flow</text>
 
-    <!-- Steps -->
     <!-- Step 1 -->
     <rect y="60" width="380" height="56" rx="10" fill="white" filter="url(#shadow)"/>
     <circle cx="32" cy="88" r="14" fill="#e5e7eb"/>
@@ -42,7 +41,7 @@
     <text x="58" y="102" font-size="12" fill="#6b7280">Start macOS dictation</text>
 
     <!-- Arrow -->
-    <path d="M190 116 L190 130" stroke="#d1d5db" stroke-width="2" marker-end="url(#arrowGray)"/>
+    <path d="M190 116 L190 130" stroke="#d1d5db" stroke-width="2"/>
 
     <!-- Step 2 -->
     <rect y="132" width="380" height="56" rx="10" fill="white" filter="url(#shadow)"/>
@@ -64,7 +63,7 @@
     <!-- Arrow -->
     <path d="M190 260 L190 274" stroke="#d1d5db" stroke-width="2"/>
 
-    <!-- Step 4 - Manual action highlighted -->
+    <!-- Step 4 - Manual -->
     <rect y="276" width="380" height="56" rx="10" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5" filter="url(#shadow)"/>
     <circle cx="32" cy="304" r="14" fill="#fee2e2"/>
     <text x="32" y="309" text-anchor="middle" font-size="13" font-weight="700" fill="#dc2626">4</text>
@@ -74,7 +73,7 @@
     <!-- Arrow -->
     <path d="M190 332 L190 346" stroke="#fca5a5" stroke-width="2"/>
 
-    <!-- Step 5 - Manual action highlighted -->
+    <!-- Step 5 - Manual -->
     <rect y="348" width="380" height="56" rx="10" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5" filter="url(#shadow)"/>
     <circle cx="32" cy="376" r="14" fill="#fee2e2"/>
     <text x="32" y="381" text-anchor="middle" font-size="13" font-weight="700" fill="#dc2626">5</text>
@@ -84,20 +83,41 @@
     <!-- Arrow -->
     <path d="M190 404 L190 418" stroke="#d1d5db" stroke-width="2"/>
 
+    <!-- Step 6 - Wait -->
+    <rect y="420" width="380" height="56" rx="10" fill="white" filter="url(#shadow)"/>
+    <circle cx="32" cy="448" r="14" fill="#e5e7eb"/>
+    <text x="32" y="453" text-anchor="middle" font-size="13" font-weight="700" fill="#6b7280">6</text>
+    <text x="58" y="442" font-size="14" font-weight="600" fill="#374151">Wait for response</text>
+    <text x="58" y="460" font-size="12" fill="#6b7280">Claude Code generates reply</text>
+
+    <!-- Arrow -->
+    <path d="M190 476 L190 490" stroke="#d1d5db" stroke-width="2"/>
+
+    <!-- Step 7 - Manual read -->
+    <rect y="492" width="380" height="56" rx="10" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5" filter="url(#shadow)"/>
+    <circle cx="32" cy="520" r="14" fill="#fee2e2"/>
+    <text x="32" y="525" text-anchor="middle" font-size="13" font-weight="700" fill="#dc2626">7</text>
+    <text x="58" y="514" font-size="14" font-weight="600" fill="#dc2626">Read response</text>
+    <text x="58" y="532" font-size="12" fill="#b91c1c">Manually read text on screen</text>
+
+    <!-- Arrow -->
+    <path d="M190 548 L190 562" stroke="#d1d5db" stroke-width="2"/>
+
     <!-- Result -->
-    <rect y="420" width="380" height="48" rx="10" fill="#f3f4f6" filter="url(#shadow)"/>
-    <text x="190" y="450" text-anchor="middle" font-size="14" font-weight="600" fill="#6b7280">Message Sent</text>
+    <rect y="564" width="380" height="48" rx="10" fill="#f3f4f6" filter="url(#shadow)"/>
+    <text x="190" y="594" text-anchor="middle" font-size="14" font-weight="600" fill="#6b7280">Interaction Complete</text>
 
     <!-- Stats -->
-    <rect y="484" width="380" height="36" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="1"/>
-    <text x="190" y="507" text-anchor="middle" font-size="13" font-weight="600" fill="#dc2626">5 steps  ·  2 manual keyboard actions</text>
+    <rect y="628" width="380" height="52" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="1"/>
+    <text x="190" y="650" text-anchor="middle" font-size="13" font-weight="600" fill="#dc2626">7 steps  ·  3 manual actions</text>
+    <text x="190" y="670" text-anchor="middle" font-size="11" fill="#ef4444">Eyes on screen required throughout</text>
   </g>
 
   <!-- ========== Divider ========== -->
-  <line x1="430" y1="100" x2="430" y2="640" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="6,4"/>
-  <text x="430" y="650" text-anchor="middle" font-size="12" font-weight="600" fill="#9ca3af">VS</text>
+  <line x1="430" y1="100" x2="430" y2="790" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="430" y="806" text-anchor="middle" font-size="12" font-weight="600" fill="#9ca3af">VS</text>
 
-  <!-- ========== RIGHT: Updated Flow ========== -->
+  <!-- ========== RIGHT: Typeless Flow ========== -->
   <g transform="translate(450, 90)">
     <!-- Header -->
     <rect width="380" height="44" rx="10" fill="url(#newHead)" filter="url(#glow)"/>
@@ -128,35 +148,59 @@
     <circle cx="32" cy="232" r="14" fill="#ede9fe"/>
     <text x="32" y="237" text-anchor="middle" font-size="13" font-weight="700" fill="#7c3aed">3</text>
     <text x="58" y="228" font-size="14" font-weight="600" fill="#374151">Press Fn</text>
-    <text x="58" y="246" font-size="12" fill="#6b7280">Stop dictation, text inserted</text>
+    <text x="58" y="246" font-size="12" fill="#6b7280">Stop dictation — done!</text>
 
-    <!-- Arrow (automated section) -->
-    <path d="M190 260 L190 290" stroke="#a78bfa" stroke-width="2" stroke-dasharray="4,3"/>
+    <!-- Automated section label -->
+    <rect x="100" y="275" width="180" height="24" rx="12" fill="#7c3aed"/>
+    <text x="190" y="291" text-anchor="middle" font-size="11" font-weight="600" fill="white">FULLY AUTOMATED BELOW</text>
 
-    <!-- Auto block -->
-    <rect y="292" width="380" height="56" rx="10" fill="#f5f3ff" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="6,3" filter="url(#shadow)"/>
-    <text x="190" y="316" text-anchor="middle" font-size="13" fill="#7c3aed" font-style="italic">2.5s delay — waiting for text insertion</text>
-    <text x="190" y="334" text-anchor="middle" font-size="11" fill="#8b5cf6">fully automatic, no user action needed</text>
+    <!-- Arrow (automated) -->
+    <path d="M190 260 L190 275" stroke="#a78bfa" stroke-width="2"/>
+    <path d="M190 299 L190 314" stroke="#a78bfa" stroke-width="2" stroke-dasharray="4,3"/>
 
-    <!-- Arrow -->
-    <path d="M190 348 L190 362" stroke="#a78bfa" stroke-width="2" stroke-dasharray="4,3"/>
-
-    <!-- Auto Enter -->
-    <rect y="364" width="380" height="56" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" filter="url(#shadow)"/>
-    <circle cx="32" cy="392" r="14" fill="#dcfce7"/>
-    <text x="32" y="397" text-anchor="middle" font-size="11" font-weight="700" fill="#16a34a">AUTO</text>
-    <text x="58" y="386" font-size="14" font-weight="600" fill="#16a34a">Enter sent automatically</text>
-    <text x="58" y="404" font-size="12" fill="#15803d">No keyboard action required</text>
+    <!-- Auto: 2.5s delay -->
+    <rect y="316" width="380" height="50" rx="10" fill="#f5f3ff" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="6,3" filter="url(#shadow)"/>
+    <text x="190" y="338" text-anchor="middle" font-size="13" fill="#7c3aed" font-style="italic">2.5s delay — text insertion completes</text>
+    <text x="190" y="355" text-anchor="middle" font-size="11" fill="#8b5cf6">automatic</text>
 
     <!-- Arrow -->
-    <path d="M190 420 L190 434" stroke="#86efac" stroke-width="2"/>
+    <path d="M190 366 L190 380" stroke="#a78bfa" stroke-width="2" stroke-dasharray="4,3"/>
+
+    <!-- Auto: Enter -->
+    <rect y="382" width="380" height="50" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" filter="url(#shadow)"/>
+    <circle cx="32" cy="407" r="14" fill="#dcfce7"/>
+    <text x="32" y="412" text-anchor="middle" font-size="10" font-weight="700" fill="#16a34a">AUTO</text>
+    <text x="58" y="402" font-size="14" font-weight="600" fill="#16a34a">Enter sent automatically</text>
+    <text x="58" y="418" font-size="12" fill="#15803d">Message submitted to Claude Code</text>
+
+    <!-- Arrow -->
+    <path d="M190 432 L190 446" stroke="#a78bfa" stroke-width="2" stroke-dasharray="4,3"/>
+
+    <!-- Auto: Claude responds -->
+    <rect y="448" width="380" height="50" rx="10" fill="#f5f3ff" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="6,3" filter="url(#shadow)"/>
+    <text x="190" y="470" text-anchor="middle" font-size="13" fill="#7c3aed" font-style="italic">Claude Code generates response</text>
+    <text x="190" y="487" text-anchor="middle" font-size="11" fill="#8b5cf6">automatic</text>
+
+    <!-- Arrow -->
+    <path d="M190 498 L190 512" stroke="#a78bfa" stroke-width="2" stroke-dasharray="4,3"/>
+
+    <!-- Auto: TTS -->
+    <rect y="514" width="380" height="50" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" filter="url(#shadow)"/>
+    <circle cx="32" cy="539" r="14" fill="#dcfce7"/>
+    <text x="32" y="544" text-anchor="middle" font-size="10" font-weight="700" fill="#16a34a">TTS</text>
+    <text x="58" y="534" font-size="14" font-weight="600" fill="#16a34a">Response read aloud</text>
+    <text x="58" y="550" font-size="12" fill="#15803d">macOS TTS speaks the answer</text>
+
+    <!-- Arrow -->
+    <path d="M190 564 L190 578" stroke="#86efac" stroke-width="2"/>
 
     <!-- Result -->
-    <rect y="436" width="380" height="48" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1" filter="url(#shadow)"/>
-    <text x="190" y="466" text-anchor="middle" font-size="14" font-weight="600" fill="#16a34a">Message Sent</text>
+    <rect y="580" width="380" height="48" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1" filter="url(#shadow)"/>
+    <text x="190" y="610" text-anchor="middle" font-size="14" font-weight="600" fill="#16a34a">Interaction Complete</text>
 
     <!-- Stats -->
-    <rect y="500" width="380" height="36" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
-    <text x="190" y="523" text-anchor="middle" font-size="13" font-weight="600" fill="#16a34a">3 steps  ·  0 manual keyboard actions</text>
+    <rect y="644" width="380" height="52" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+    <text x="190" y="666" text-anchor="middle" font-size="13" font-weight="600" fill="#16a34a">3 steps  ·  0 manual actions</text>
+    <text x="190" y="686" text-anchor="middle" font-size="11" fill="#16a34a">Fully hands-free after pressing Fn twice</text>
   </g>
 </svg>
