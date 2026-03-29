@@ -8,6 +8,10 @@ let gFlagFile = NSString(string: "~/.claude/voice-enabled").expandingTildeInPath
 var gDictationActive = false
 var gLastFnDownTime: TimeInterval = 0
 let kDedupeWindow: TimeInterval = 0.05  // ignore duplicate FN events within 50ms
+var gLastHIDEventTime: TimeInterval = 0 // track last HID event for watchdog
+let kWatchdogInterval: TimeInterval = 60 // check every 60 seconds
+let kWatchdogTimeout: TimeInterval = 300 // reconnect if no events for 5 minutes
+var gManager: IOHIDManager?
 
 func log(_ msg: String) {
     let f = DateFormatter()
@@ -65,9 +69,10 @@ let hidCallback: IOHIDValueCallback = { context, result, sender, value in
     let usage = IOHIDElementGetUsage(element)
     let intValue = IOHIDValueGetIntegerValue(value)
 
-    // Log all keyboard events for debugging (first few)
-    // Usage page 0x07 = Keyboard, 0x01 = Generic Desktop, 0x0C = Consumer
-    // Usage page 0xFF = vendor-specific
+    // Track last event time for watchdog
+    gLastHIDEventTime = ProcessInfo.processInfo.systemUptime
+
+    // Log all keyboard events for debugging
     if usagePage == 0x07 || usagePage == 0x01 || usagePage == 0x0C || usagePage == 0xFF {
         log("HID: page=0x\(String(usagePage, radix: 16)) usage=0x\(String(usage, radix: 16)) value=\(intValue)")
     }
@@ -113,42 +118,81 @@ let hidCallback: IOHIDValueCallback = { context, result, sender, value in
     }
 }
 
+// --- HID Manager Setup ---
+func createAndOpenHIDManager() -> IOHIDManager {
+    let mgr = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
+
+    let matchingDicts: [[String: Any]] = [
+        [
+            kIOHIDDeviceUsagePageKey as String: 0x01,
+            kIOHIDDeviceUsageKey as String: 0x06
+        ],
+        [
+            kIOHIDDeviceUsagePageKey as String: 0x01,
+            kIOHIDDeviceUsageKey as String: 0x07
+        ],
+        [
+            kIOHIDDeviceUsagePageKey as String: 0x0C,
+            kIOHIDDeviceUsageKey as String: 0x01
+        ]
+    ]
+
+    IOHIDManagerSetDeviceMatchingMultiple(mgr, matchingDicts as CFArray)
+    IOHIDManagerRegisterInputValueCallback(mgr, hidCallback, nil)
+    IOHIDManagerScheduleWithRunLoop(mgr, CFRunLoopGetCurrent(), CFRunLoopMode.defaultMode.rawValue)
+
+    let result = IOHIDManagerOpen(mgr, IOOptionBits(kIOHIDOptionsTypeNone))
+    if result != kIOReturnSuccess {
+        log("ERROR: Failed to open HID manager (result: \(result))")
+        log("Make sure Input Monitoring permission is granted:")
+        log("  System Settings > Privacy & Security > Input Monitoring")
+        exit(1)
+    }
+
+    return mgr
+}
+
+func reconnectHID() {
+    log(">>> WATCHDOG: Reconnecting HID manager...")
+
+    // Close old manager
+    if let old = gManager {
+        IOHIDManagerClose(old, IOOptionBits(kIOHIDOptionsTypeNone))
+        IOHIDManagerUnscheduleFromRunLoop(old, CFRunLoopGetCurrent(), CFRunLoopMode.defaultMode.rawValue)
+    }
+
+    // Create new manager
+    gManager = createAndOpenHIDManager()
+    gLastHIDEventTime = ProcessInfo.processInfo.systemUptime
+    gDictationActive = false
+    log(">>> WATCHDOG: HID manager reconnected successfully")
+}
+
 // --- Main ---
 log("Dictation auto-submit active (PID \(ProcessInfo.processInfo.processIdentifier))")
 log("Using IOHIDManager for low-level key capture...")
 
-let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
-
-// Match keyboard devices
-let matchingDicts: [[String: Any]] = [
-    [
-        kIOHIDDeviceUsagePageKey as String: 0x01, // Generic Desktop
-        kIOHIDDeviceUsageKey as String: 0x06       // Keyboard
-    ],
-    [
-        kIOHIDDeviceUsagePageKey as String: 0x01, // Generic Desktop
-        kIOHIDDeviceUsageKey as String: 0x07       // Keypad
-    ],
-    [
-        kIOHIDDeviceUsagePageKey as String: 0x0C, // Consumer
-        kIOHIDDeviceUsageKey as String: 0x01       // Consumer Control
-    ]
-]
-
-IOHIDManagerSetDeviceMatchingMultiple(manager, matchingDicts as CFArray)
-IOHIDManagerRegisterInputValueCallback(manager, hidCallback, nil)
-IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetCurrent(), CFRunLoopMode.defaultMode.rawValue)
-
-let openResult = IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
-if openResult != kIOReturnSuccess {
-    log("ERROR: Failed to open HID manager (result: \(openResult))")
-    log("Make sure Input Monitoring permission is granted:")
-    log("  System Settings > Privacy & Security > Input Monitoring")
-    exit(1)
-}
+gManager = createAndOpenHIDManager()
+gLastHIDEventTime = ProcessInfo.processInfo.systemUptime
 
 log("HID manager opened successfully. Listening for key events...")
+log("Watchdog: checking every \(Int(kWatchdogInterval))s, reconnect if silent for \(Int(kWatchdogTimeout))s")
 log("Press FN key to test detection.")
+
+// Watchdog timer: reconnect HID if no events received for too long
+let watchdogTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
+watchdogTimer.schedule(deadline: .now() + kWatchdogInterval, repeating: kWatchdogInterval)
+watchdogTimer.setEventHandler {
+    let now = ProcessInfo.processInfo.systemUptime
+    let silent = now - gLastHIDEventTime
+    if silent > kWatchdogTimeout {
+        log(">>> WATCHDOG: No HID events for \(Int(silent))s, triggering reconnect...")
+        DispatchQueue.main.async {
+            reconnectHID()
+        }
+    }
+}
+watchdogTimer.resume()
 
 signal(SIGINT) { _ in log("Stopped."); exit(0) }
 signal(SIGTERM) { _ in exit(0) }
