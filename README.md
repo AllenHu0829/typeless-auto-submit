@@ -1,8 +1,11 @@
 # Typeless Auto Submit
 
-Talk to Claude Code with your voice — no typing, no Enter key.
+Hands-free voice interaction for Claude Code — speak to ask, hear the answer.
 
-Press Fn to start dictating, press Fn again to stop. Your message auto-submits.
+- **Voice Input**: Press Fn to dictate, press Fn again — message auto-submits
+- **Voice Output**: Claude Code's response is read aloud via macOS TTS
+
+No typing. No Enter key. Just talk.
 
 ## Quick Start
 
@@ -24,33 +27,62 @@ git clone https://github.com/AllenHu0829/typeless-auto-submit.git
 cd typeless-auto-submit
 ```
 
-### Step 2: Compile and install
+### Step 2: Install scripts
 
 ```bash
 mkdir -p ~/.claude/hooks
+
+# Compile the auto-submit binary
 swiftc -o ~/.claude/hooks/dictation-auto-submit \
   dictation-auto-submit.swift \
   -framework IOKit -framework Foundation -framework CoreGraphics
+
+# Install voice response and toggle scripts
+cp voice-response.sh ~/.claude/hooks/
+cp voice-toggle.sh ~/.claude/hooks/
+chmod +x ~/.claude/hooks/voice-response.sh ~/.claude/hooks/voice-toggle.sh
 ```
 
-### Step 3: Grant macOS permissions
+### Step 3: Configure Claude Code hook
+
+Add the voice response hook to `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/voice-response.sh",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+> If you already have a `settings.json`, merge the `hooks` section into your existing config.
+
+### Step 4: Grant macOS permissions
 
 Open **System Settings > Privacy & Security** and add `~/.claude/hooks/dictation-auto-submit`:
 
 1. **Input Monitoring** — to detect Fn key presses
 2. **Accessibility** — to send Enter keystroke to terminal
 
-> Tip: drag the binary from Finder, or click `+` and press `Cmd+Shift+G` to type the path.
+> Tip: click `+` and press `Cmd+Shift+G` to type the path.
 
-### Step 4: Enable voice mode
+### Step 5: Enable and run
 
 ```bash
+# Enable voice mode
 touch ~/.claude/voice-enabled
-```
 
-### Step 5: Run
-
-```bash
+# Start the auto-submit listener
 ~/.claude/hooks/dictation-auto-submit &
 ```
 
@@ -60,59 +92,106 @@ touch ~/.claude/voice-enabled
 2. Press **Fn** — macOS dictation starts (microphone icon appears)
 3. Speak your message
 4. Press **Fn** again — dictation stops
-5. Wait 2.5 seconds — message auto-submits!
+5. Wait 2.5s — message auto-submits
+6. Claude responds — response is read aloud
+
+## Voice Control
+
+Use `voice-toggle.sh` to manage all voice features:
+
+```bash
+# Quick toggle on/off
+bash ~/.claude/hooks/voice-toggle.sh on
+bash ~/.claude/hooks/voice-toggle.sh off
+
+# Check current status
+bash ~/.claude/hooks/voice-toggle.sh status
+
+# Change TTS voice
+bash ~/.claude/hooks/voice-toggle.sh voice Tingting    # Chinese
+bash ~/.claude/hooks/voice-toggle.sh voice Samantha    # English
+bash ~/.claude/hooks/voice-toggle.sh voice Meijia      # Chinese (Taiwan)
+
+# Adjust speech speed (words per minute)
+bash ~/.claude/hooks/voice-toggle.sh rate 180          # Slower
+bash ~/.claude/hooks/voice-toggle.sh rate 220          # Default
+bash ~/.claude/hooks/voice-toggle.sh rate 280          # Faster
+
+# Stop speaking immediately
+bash ~/.claude/hooks/voice-toggle.sh stop
+```
+
+> Tip: add an alias to your `.zshrc`:
+> ```bash
+> alias voice="bash ~/.claude/hooks/voice-toggle.sh"
+> ```
+> Then use: `voice on`, `voice off`, `voice status`, etc.
+
+## Available macOS Voices
+
+List all installed voices:
+
+```bash
+say -v '?'
+```
+
+Common voices:
+
+| Voice | Language | Notes |
+|-------|----------|-------|
+| Tingting | Chinese (Mandarin) | Default |
+| Sinji | Chinese (Cantonese) | |
+| Meijia | Chinese (Taiwan) | |
+| Samantha | English (US) | |
+| Daniel | English (UK) | |
+
+Download more in **System Settings > Accessibility > Spoken Content > System Voice > Manage Voices**.
 
 ## Auto-Start on Login (Optional)
 
-Set it up so you never have to manually start it:
-
 ```bash
+# Copy and customize the plist
 cp com.claude.dictation-auto-submit.plist ~/Library/LaunchAgents/
+sed -i '' "s|/Users/allenhu|$HOME|g" ~/Library/LaunchAgents/com.claude.dictation-auto-submit.plist
+
+# Load the service
 launchctl load ~/Library/LaunchAgents/com.claude.dictation-auto-submit.plist
 ```
 
-> **Note:** The binary path in the plist is `/Users/allenhu/.claude/hooks/dictation-auto-submit`. Edit the plist to match your home directory:
-> ```bash
-> sed -i '' "s|/Users/allenhu|$HOME|g" ~/Library/LaunchAgents/com.claude.dictation-auto-submit.plist
-> ```
-
 The service auto-restarts on crash and starts on every login.
-
-## On / Off Switch
-
-| Action | Command |
-|--------|---------|
-| Turn ON | `touch ~/.claude/voice-enabled` |
-| Turn OFF | `rm ~/.claude/voice-enabled` |
-
-When OFF, the process still runs but won't send Enter — you can dictate text without auto-submitting.
 
 ## How It Works
 
 ```
-Fn (press)          Fn (press)              Enter sent
-    |                   |                       |
-    v                   v                       v
-[Dictation starts] [Dictation stops]  [2.5s delay] [Auto-submit]
-                   [Text inserted into Claude Code input]
+┌─────────────── Voice Input ───────────────┐   ┌──────── Voice Output ────────┐
+│                                           │   │                              │
+│  Fn → Dictate → Fn → [2.5s] → Auto Enter │ → │  Claude responds → TTS aloud │
+│                                           │   │                              │
+└───────────────────────────────────────────┘   └──────────────────────────────┘
 ```
 
-1. A background process monitors the Fn/Globe key via macOS IOKit HID API
-2. First Fn press = dictation started (state tracking)
-3. Second Fn press = dictation ended, schedules Enter after 2.5s delay
-4. Enter is sent via `osascript` as a physical key code to the terminal process
-5. Two Enter events are sent: first commits any IME composing text, second submits the message
+**Voice Input (dictation-auto-submit)**:
+1. Background process monitors Fn/Globe key via macOS IOKit HID API
+2. First Fn press = dictation started
+3. Second Fn press = dictation ended, schedules Enter after 2.5s
+4. Enter sent via `osascript key code 36` to the terminal process
+5. Two Enter events: first commits IME text, second submits message
+
+**Voice Output (voice-response.sh)**:
+1. Claude Code `Stop` hook triggers after each response
+2. Script extracts text, strips code blocks/tables/URLs/paths
+3. Condenses to key sentences (max 300 chars)
+4. Reads aloud via macOS `say` command
+5. Previous speech is interrupted if new response arrives
 
 ## Other Terminals
 
-The default target is Ghostty. To use with a different terminal, edit `dictation-auto-submit.swift`:
+Default target is Ghostty. Edit `dictation-auto-submit.swift` to change:
 
-Find:
 ```swift
-tell process "ghostty"
+tell process "ghostty"   // ← replace with your terminal
 ```
 
-Replace `ghostty` with your terminal:
 | Terminal | Process Name |
 |----------|-------------|
 | Ghostty | `ghostty` |
@@ -122,11 +201,13 @@ Replace `ghostty` with your terminal:
 | Kitty | `kitty` |
 | Alacritty | `alacritty` |
 
-Then recompile (Step 2). After recompiling, re-authorize in Input Monitoring.
+Recompile after editing (Step 2). Re-authorize in Input Monitoring after recompile.
 
-## Tuning the Delay
+## Tuning
 
-The default 2.5s delay works well for most dictation lengths. Adjust in the source:
+### Auto-submit delay
+
+Edit `dictation-auto-submit.swift`:
 
 ```swift
 DispatchQueue.global().asyncAfter(deadline: .now() + 2.5) {
@@ -134,29 +215,42 @@ DispatchQueue.global().asyncAfter(deadline: .now() + 2.5) {
 
 | Delay | Trade-off |
 |-------|-----------|
-| 1.5s | Faster, but long dictations may not finish inserting |
-| 2.5s | Recommended — reliable for most use cases |
-| 3.5s | Very safe, but feels slow |
+| 1.5s | Faster, may miss long dictation text |
+| 2.5s | Recommended |
+| 3.5s | Very safe, feels slow |
+
+### TTS response length
+
+Edit `voice-response.sh`, change max lines and character limit:
+
+```bash
+# Take first 3 key lines
+key_lines[:3]
+
+# Hard limit
+if len(condensed) > 300:
+```
 
 ## Commands Reference
 
 ```bash
-# View live logs
+# Voice toggle
+bash ~/.claude/hooks/voice-toggle.sh status
+
+# View auto-submit logs
 tail -f /tmp/dictation-auto-submit.log
 
-# Check if running
-ps aux | grep dictation-auto-submit | grep -v grep
+# Check if auto-submit is running
+pgrep -x dictation-auto-submit
 
-# Stop manually
-pkill -f dictation-auto-submit
+# Stop auto-submit
+pkill -x dictation-auto-submit
 
-# launchd status
+# Stop TTS immediately
+pkill -f "say -v"
+
+# launchd control
 launchctl list | grep dictation
-
-# Stop launchd service
-launchctl unload ~/Library/LaunchAgents/com.claude.dictation-auto-submit.plist
-
-# Restart launchd service
 launchctl unload ~/Library/LaunchAgents/com.claude.dictation-auto-submit.plist
 launchctl load ~/Library/LaunchAgents/com.claude.dictation-auto-submit.plist
 ```
@@ -168,16 +262,21 @@ launchctl load ~/Library/LaunchAgents/com.claude.dictation-auto-submit.plist
 | `ERROR: Failed to open HID manager` | Add binary to **Input Monitoring** in System Settings |
 | Enter sent but message not submitted | Check terminal process name; try increasing delay |
 | Fn key not detected | Enable macOS Dictation: System Settings > Keyboard > Dictation |
-| launchd service won't start | Re-authorize binary in Input Monitoring after recompile |
+| launchd won't start | Re-authorize binary in Input Monitoring after recompile |
 | Unstable auto-submit | Increase delay to 3.0s or 3.5s |
-| Works in terminal but not via launchd | The binary needs its own Input Monitoring permission (separate from terminal) |
+| No voice response | Check `~/.claude/settings.json` has the Stop hook configured |
+| Wrong language voice | Run `voice-toggle.sh voice <name>` to change |
+| Voice too fast/slow | Run `voice-toggle.sh rate <wpm>` to adjust |
 
 ## Files
 
 ```
-dictation-auto-submit.swift              # Source code
+dictation-auto-submit.swift              # Auto-submit source code
 dictation-auto-submit                    # Pre-compiled binary (arm64)
+voice-response.sh                        # TTS response hook for Claude Code
+voice-toggle.sh                          # Voice mode control script
 com.claude.dictation-auto-submit.plist   # launchd auto-start config
+flow-comparison.svg                      # Flow comparison diagram
 README.md                                # This file
 ```
 
