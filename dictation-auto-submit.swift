@@ -7,6 +7,7 @@ import CoreGraphics
 let gFlagFile = NSString(string: "~/.claude/voice-enabled").expandingTildeInPath
 var gDictationActive = false
 var gLastFnDownTime: TimeInterval = 0
+var gDictationStartTime: TimeInterval = 0 // when dictation started
 let kDedupeWindow: TimeInterval = 0.05  // ignore duplicate FN events within 50ms
 var gLastHIDEventTime: TimeInterval = 0 // track last HID event for watchdog
 let kWatchdogInterval: TimeInterval = 60 // check every 60 seconds
@@ -28,8 +29,8 @@ func sendEnter() {
     }
 
     // Use osascript key code 36 (physical Return key) targeted at Ghostty
-    // Send twice: 1st commits IME, 2nd submits message
-    for i in 1...2 {
+    // Send 3 times: 1st commits IME, 2nd clears any residual IME state, 3rd submits message
+    for i in 1...3 {
         let task = Process()
         task.launchPath = "/usr/bin/osascript"
         task.arguments = ["-e", """
@@ -56,9 +57,7 @@ func sendEnter() {
             log("ERROR: osascript #\(i) exception: \(error)")
         }
 
-        if i == 1 {
-            usleep(500000) // 500ms gap between the two Enters
-        }
+        usleep(800000) // 800ms gap between each Enter
     }
 }
 
@@ -104,11 +103,16 @@ let hidCallback: IOHIDValueCallback = { context, result, sender, value in
             log(">>> FN/Globe KEY DOWN detected!")
             if !gDictationActive {
                 gDictationActive = true
+                gDictationStartTime = now
                 log(">>> Dictation STARTED (FN press)")
             } else {
                 gDictationActive = false
-                log(">>> Dictation ENDED (FN press), sending Enter in 2.5s...")
-                DispatchQueue.global().asyncAfter(deadline: .now() + 2.5) {
+                let dictationDuration = now - gDictationStartTime
+                // Dynamic delay: longer dictation = more text = more time to finalize
+                // Base 1.2s + 0.15s per second of dictation, clamped to [1.5s, 4.0s]
+                let delay = min(4.0, max(1.5, 1.2 + dictationDuration * 0.15))
+                log(">>> Dictation ENDED (FN press), duration=\(String(format: "%.1f", dictationDuration))s, sending Enter in \(String(format: "%.1f", delay))s...")
+                DispatchQueue.global().asyncAfter(deadline: .now() + delay) {
                     sendEnter()
                 }
             }
