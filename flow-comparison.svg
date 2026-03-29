@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 620" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 660" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif">
   <defs>
     <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#f8f9fb"/>
@@ -21,7 +21,7 @@
   </defs>
 
   <!-- Background -->
-  <rect width="860" height="620" rx="16" fill="url(#bgGrad)"/>
+  <rect width="860" height="660" rx="16" fill="url(#bgGrad)"/>
 
   <!-- Title -->
   <text x="430" y="42" text-anchor="middle" font-size="22" font-weight="700" fill="#1f2937">Voice Input Flow Comparison</text>
@@ -94,8 +94,8 @@
   </g>
 
   <!-- ========== Divider ========== -->
-  <line x1="430" y1="100" x2="430" y2="600" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="6,4"/>
-  <text x="430" y="610" text-anchor="middle" font-size="12" font-weight="600" fill="#9ca3af">VS</text>
+  <line x1="430" y1="100" x2="430" y2="640" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="430" y="650" text-anchor="middle" font-size="12" font-weight="600" fill="#9ca3af">VS</text>
 
   <!-- ========== RIGHT: Updated Flow ========== -->
   <g transform="translate(450, 90)">
